@@ -1,9 +1,9 @@
 import { Message, UserData } from "@/app/data";
 import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useRef } from "react";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import ChatBottombar from "./chat-bottombar";
-import { AnimatePresence, motion } from "framer-motion";
 
 interface ChatListProps {
   messages?: Message[];

@@ -60,21 +60,7 @@ export const userData = [
         ],
         name: 'Jane Doe',
     },
-    {
-        id: 2,
-        avatar: '/User2.png',
-        name: 'John Doe',
-    },
-    {
-        id: 3,
-        avatar: '/User3.png',
-        name: 'Elizabeth Smith',
-    },
-    {
-        id: 4,
-        avatar: '/User4.png',
-        name: 'John Smith',
-    }
+    
 ];
 
 export type UserData = (typeof userData)[number];

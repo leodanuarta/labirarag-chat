@@ -1,13 +1,13 @@
 "use client";
 
 import { userData } from "@/app/data";
-import React, { useEffect, useState } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { cn } from "@/lib/utils";
+import React, { useEffect, useRef, useState } from "react";
 import { Sidebar } from "../sidebar";
 import { Chat } from "./chat";
 
@@ -25,6 +25,8 @@ export function ChatLayout({
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
   const [selectedUser, setSelectedUser] = React.useState(userData[0]);
   const [isMobile, setIsMobile] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
 
   useEffect(() => {
     const checkScreenWidth = () => {
@@ -42,6 +44,37 @@ export function ChatLayout({
       window.removeEventListener("resize", checkScreenWidth);
     };
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (chatContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+        console.log("scrollTop:", scrollTop, "scrollHeight:", scrollHeight, "clientHeight:", clientHeight);
+        const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10; // Allow some margin
+        setShowScrollToBottom(!isAtBottom);
+      }
+    };
+
+    const chatContainer = chatContainerRef.current;
+    if (chatContainer) {
+      chatContainer.addEventListener("scroll", handleScroll);
+      // Initial check
+      handleScroll();
+    }
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      if (chatContainer) {
+        chatContainer.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  };
 
   return (
     <ResizablePanelGroup
@@ -80,7 +113,6 @@ export function ChatLayout({
           links={userData.map((user) => ({
             name: user.name,
             messages: user.messages ?? [],
-            avatar: user.avatar,
             variant: selectedUser.name === user.name ? "grey" : "ghost",
           }))}
           isMobile={isMobile}
@@ -88,11 +120,23 @@ export function ChatLayout({
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
-        <Chat
-          messages={selectedUser.messages}
-          selectedUser={selectedUser}
-          isMobile={isMobile}
-        />
+        <div className="relative h-full">
+          <div ref={chatContainerRef} className="h-full overflow-y-auto">
+            <Chat
+              messages={selectedUser.messages}
+              selectedUser={selectedUser}
+              isMobile={isMobile}
+            />
+          </div>
+          {showScrollToBottom && (
+            <button
+              onClick={scrollToBottom}
+              className="fixed bottom-4 right-4 bg-blue-500 text-white p-2 rounded-full shadow-lg"
+            >
+              Scroll to Bottom
+            </button>
+          )}
+        </div>
       </ResizablePanel>
     </ResizablePanelGroup>
   );
