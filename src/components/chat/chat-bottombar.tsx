@@ -38,7 +38,8 @@ export default function ChatBottombar({
         question: "halo apa kabar",
       });
       if (response.status === 200) {
-        const newMessage: Message = response.data;
+        const newMessage: Message = { text: response.data.text, name: "Bot", avatar: "/path/to/bot/avatar" }; // Adjust accordingly
+        console.log('Received message:', newMessage);
         sendMessage(newMessage); // Send the message
       } else {
         console.error('Failed to send message');
@@ -50,14 +51,17 @@ export default function ChatBottombar({
 
   const handleSend = async () => {
     setIsSending(true);
+    const userMessage: Message = { text: message, name: "User", avatar: "/path/to/user/avatar" }; // Adjust accordingly
+    sendMessage(userMessage); // Add user message to chatlist immediately
+
     try {
       const resp = await api.post("/tanyalabira", {
         question: message
       });
       if (resp.status === 200) {
-        const newMessage: Message = resp.data;
-        sendMessage(newMessage); // Send the message
-        console.log(resp.data)
+        const botMessage: Message = { text: resp.data.text, name: "Bot", avatar: "/path/to/bot/avatar" }; // Adjust accordingly
+        console.log('Received message:', botMessage);
+        sendMessage(botMessage); // Send the bot response
       } else {
         console.error('Failed to send message');
       }
@@ -106,7 +110,7 @@ export default function ChatBottombar({
             onChange={handleInputChange}
             name="message"
             placeholder="Aa"
-            className=" w-full border rounded-full flex items-center h-9 resize-none overflow-hidden bg-background"
+            className="w-full border rounded-full flex items-center h-9 resize-none overflow-hidden bg-background"
             disabled={isSending}
           ></Textarea>
         </motion.div>
@@ -124,7 +128,7 @@ export default function ChatBottombar({
           >
             <SendHorizontal size={20} className={cn("text-muted-foreground")} />
           </Link>
-        ): isSending ?(
+        ) : isSending ? (
           <Link
             href="#"
             className={cn(
@@ -135,9 +139,8 @@ export default function ChatBottombar({
             )}
             onClick={(e) => e.preventDefault()}
           >
-          <Loader size={20} className="text-muted-foreground"/>
+            <Loader size={20} className="text-muted-foreground" />
           </Link>
-
         ) : (
           <Link
             href="#"

@@ -74,10 +74,10 @@ export const loggedInUserData = {
 export type LoggedInUserData = (typeof loggedInUserData);
 
 export interface Message {
-    id: number;
+    // id: number;
     avatar: string;
     name: string;
-    message: string;
+    text: string;
 }
 
 export interface User {
