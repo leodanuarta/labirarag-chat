@@ -1,9 +1,10 @@
-import { Message, loggedInUserData } from "@/app/data";
+import { Message } from "@/app/data";
 import api from "@/lib/apis";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FileImage,
+  Loader,
   Paperclip,
   SendHorizontal,
   ThumbsUp
@@ -23,7 +24,8 @@ export const BottombarIcons = [{ icon: FileImage }, { icon: Paperclip }];
 export default function ChatBottombar({
   sendMessage, isMobile,
 }: ChatBottombarProps) {
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<string>("");
+  const [isSending, setIsSending] = useState<boolean>(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -31,45 +33,39 @@ export default function ChatBottombar({
   };
 
   const handleThumbsUp = async () => {
-    // const newMessage: Message = {
-    //   id: message.length + 1,
-    //   name: loggedInUserData.name,
-    //   avatar: loggedInUserData.avatar,
-    //   message: "👍",
-    // };
-    // sendMessage(newMessage);
-    // setMessage("");
-
-    try{
+    try {
       const response = await api.post('/tanyalabira', {
-        "question": "👍",
+        question: "halo apa kabar",
       });
       if (response.status === 200) {
-        const newMessage = response.data;
-        console.log('Message sent:', newMessage);
+        const newMessage: Message = response.data;
+        sendMessage(newMessage); // Send the message
       } else {
         console.error('Failed to send message');
       }
-    }catch(error){
+    } catch (error) {
       console.error('Error sending message:', error);
     }
   };
 
-  const handleSend = () => {
-    if (message.trim()) {
-      const newMessage: Message = {
-        id: message.length + 1,
-        name: loggedInUserData.name,
-        avatar: loggedInUserData.avatar,
-        message: message.trim(),
-      };
-      sendMessage(newMessage);
-      setMessage("");
-
-      if (inputRef.current) {
-        inputRef.current.focus();
+  const handleSend = async () => {
+    setIsSending(true);
+    try {
+      const resp = await api.post("/tanyalabira", {
+        question: message
+      });
+      if (resp.status === 200) {
+        const newMessage: Message = resp.data;
+        sendMessage(newMessage); // Send the message
+        console.log(resp.data)
+      } else {
+        console.error('Failed to send message');
       }
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
+    setMessage("");  // Clear the input field
+    setIsSending(false);
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -86,82 +82,6 @@ export default function ChatBottombar({
 
   return (
     <div className="p-2 flex justify-between w-full items-center gap-2">
-      {/* <div className="flex">
-          <Popover>
-            <PopoverTrigger asChild>
-            <Link
-          href="#"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "icon" }),
-            "h-9 w-9",
-            "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
-          )}
-        >
-          <PlusCircle size={20} className="text-muted-foreground" />
-        </Link>
-            </PopoverTrigger>
-            <PopoverContent 
-            side="top"
-            className="w-full p-2">
-             {message.trim() || isMobile ? (
-               <div className="flex gap-2">
-                <Link 
-              href="#"
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "icon" }),
-                "h-9 w-9",
-                "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
-              )}
-              >
-                <Mic size={20} className="text-muted-foreground" />
-              </Link>
-               {BottombarIcons.map((icon, index) => (
-                 <Link
-                   key={index}
-                   href="#"
-                   className={cn(
-                     buttonVariants({ variant: "ghost", size: "icon" }),
-                     "h-9 w-9",
-                     "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
-                   )}
-                 >
-                   <icon.icon size={20} className="text-muted-foreground" />
-                 </Link>
-               ))}
-             </div>
-             ) : (
-              <Link 
-              href="#"
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "icon" }),
-                "h-9 w-9",
-                "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
-              )}
-              >
-                <Mic size={20} className="text-muted-foreground" />
-              </Link>
-             )}
-            </PopoverContent>
-          </Popover>
-        {!message.trim() && !isMobile && (
-          <div className="flex">
-            {BottombarIcons.map((icon, index) => (
-              <Link
-                key={index}
-                href="#"
-                className={cn(
-                  buttonVariants({ variant: "ghost", size: "icon" }),
-                  "h-9 w-9",
-                  "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white"
-                )}
-              >
-                <icon.icon size={20} className="text-muted-foreground" />
-              </Link>
-            ))}
-          </div>
-        )}
-      </div> */}
-
       <AnimatePresence initial={false}>
         <motion.div
           key="input"
@@ -187,29 +107,37 @@ export default function ChatBottombar({
             name="message"
             placeholder="Aa"
             className=" w-full border rounded-full flex items-center h-9 resize-none overflow-hidden bg-background"
+            disabled={isSending}
           ></Textarea>
-          {/* <div className="absolute right-2 bottom-0.5  ">
-            <EmojiPicker onChange={(value) => {
-              setMessage(message + value)
-              if (inputRef.current) {
-                inputRef.current.focus();
-              }
-            }} />
-          </div> */}
         </motion.div>
 
-        {message.trim() ? (
+        {message !== "" && !isSending ? (
           <Link
             href="#"
             className={cn(
               buttonVariants({ variant: "ghost", size: "icon" }),
               "h-9 w-9",
-              "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white shrink-0"
+              "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white shrink-0",
+              isSending && "cursor-not-allowed"
             )}
             onClick={handleSend}
           >
-            <SendHorizontal size={20} className="text-muted-foreground" />
+            <SendHorizontal size={20} className={cn("text-muted-foreground")} />
           </Link>
+        ): isSending ?(
+          <Link
+            href="#"
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "icon" }),
+              "h-9 w-9",
+              "cursor-not-allowed",
+              "dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white shrink-0"
+            )}
+            onClick={(e) => e.preventDefault()}
+          >
+          <Loader size={20} className="text-muted-foreground"/>
+          </Link>
+
         ) : (
           <Link
             href="#"
