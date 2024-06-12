@@ -1,9 +1,10 @@
 import { Message, UserData } from "@/app/data";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import ChatBottombar from "./chat-bottombar";
+import { Skeleton } from "../ui/skeleton";
 
 interface ChatListProps {
   messages?: Message[];
@@ -16,16 +17,17 @@ export function ChatList({
   messages,
   selectedUser,
   sendMessage,
-  isMobile
+  isMobile,
 }: ChatListProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [isSending, setIsSending] = useState<boolean>(false)
 
   React.useEffect(() => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop =
         messagesContainerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isSending]);
 
   return (
     <div className="w-full overflow-y-auto overflow-x-hidden h-full flex flex-col">
@@ -70,7 +72,7 @@ export function ChatList({
                   </Avatar>
                 )}
                 <span className="bg-accent p-3 rounded-md max-w-xs">
-                  {message.text || "No message content"}
+                    {message.text || "No message content"}
                 </span>
                 {message.name === "User" && (
                   <Avatar className="flex justify-center items-center">
@@ -85,9 +87,50 @@ export function ChatList({
               </div>
             </motion.div>
           ))}
+          {isSending && (
+            <motion.div
+              key="skeleton"
+              layout
+              initial={{ opacity: 0, scale: 1, y: 50, x: 0 }}
+              animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
+              exit={{ opacity: 0, scale: 1, y: 1, x: 0 }}
+              transition={{
+                opacity: { duration: 0.1 },
+                layout: {
+                  type: "spring",
+                  bounce: 0.3,
+                  duration: 0.2,
+                },
+              }}
+              style={{
+                originX: 0.5,
+                originY: 0.5,
+              }}
+              className="flex flex-col gap-2 p-4 whitespace-pre-wrap items-start"
+            >
+              <div className="flex gap-3 items-center">
+                  <Avatar className="flex justify-center items-center">
+                    <AvatarImage
+                      src={"/User1.png"}
+                      alt={""}
+                      width={6}
+                      height={6}
+                    />
+                  </Avatar>
+                
+                <Skeleton className="bg-accent p-3 rounded-md w-[225px] h-10" />
+                {/* <Skeleton className="h-[125px] w-[250px] rounded-xl" /> */}
+                {/* <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div> */}
+                   
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
-      <ChatBottombar sendMessage={sendMessage} isMobile={isMobile} />
+      <ChatBottombar sendMessage={sendMessage} isMobile={isMobile} updateIsSending={setIsSending} />
     </div>
   );
 }
