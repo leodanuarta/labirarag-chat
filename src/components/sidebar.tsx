@@ -6,7 +6,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
+  TooltipTrigger
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Bot, SquarePen } from "lucide-react";
@@ -20,15 +20,15 @@ interface SidebarProps {
     messages: Message[];
     variant: "grey" | "ghost";
   }[];
-  onClick?: () => void;
+  onUserClick: (username: string) => void; // Tambahkan properti ini
   isMobile: boolean;
 }
 
-export function Sidebar({ links, isCollapsed, isMobile }: SidebarProps) {
+export function Sidebar({ links, isCollapsed, isMobile, onUserClick }: SidebarProps) {
   return (
     <div
       data-collapsed={isCollapsed}
-      className="relative group flex flex-col h-full gap-4 p-2 data-[collapsed=true]:p-2 "
+      className="relative group flex flex-col h-full gap-4 p-2 data-[collapsed=true]:p-2"
     >
       {!isCollapsed && (
         <div className="flex justify-between p-2 items-center">
@@ -56,8 +56,8 @@ export function Sidebar({ links, isCollapsed, isMobile }: SidebarProps) {
             <TooltipProvider key={index}>
               <Tooltip key={index} delayDuration={0}>
                 <TooltipTrigger asChild>
-                  <Link
-                    href="#"
+                  <button
+                    onClick={() => onUserClick(link.name)} // Tambahkan event handler di sini
                     className={cn(
                       buttonVariants({ variant: link.variant, size: "icon" }),
                       "h-11 w-11 md:h-16 md:w-16",
@@ -66,15 +66,10 @@ export function Sidebar({ links, isCollapsed, isMobile }: SidebarProps) {
                     )}
                   >
                     <Avatar className="flex justify-center items-center">
-                      {/* <img
-                        src={ChatLogo} // Use the chat logo instead of the avatar image
-                        alt="Chat Logo"
-                        className="w-10 h-10"
-                      /> */}
                       <Bot />
                     </Avatar>
-                    <span className="sr-only">{link.name}</span>
-                  </Link>
+                    <span className="sr-only">{link.name} haaa</span>
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent
                   side="right"
@@ -85,34 +80,36 @@ export function Sidebar({ links, isCollapsed, isMobile }: SidebarProps) {
               </Tooltip>
             </TooltipProvider>
           ) : (
-            <Link
-              key={index}
-              href="#"
-              className={cn(
-                buttonVariants({ variant: link.variant, size: "xl" }),
-                link.variant === "grey" &&
-                  "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white shrink",
-                "justify-start gap-4"
-              )}
-            >
-              <Avatar className="flex justify-center items-center">
-                {/* <img
-                  src={ChatLogo} // Use the chat logo instead of the avatar image
-                  alt="Chat Logo"
-                  className="w-10 h-10"
-                /> */}
-                <Bot />
-              </Avatar>
-              <div className="flex flex-col max-w-56">
-                {link.messages.length > 0 && (
-                  <span className="text-zinc-300 text-xs truncate ">
-                    {link.messages[link.messages.length - 1].message} {/* Only display the last message */}
-                  </span>
-                )}
-              </div>
-            </Link>
+            <TooltipProvider key={index}>
+              <Tooltip key={index} delayDuration={0} >
+                <TooltipTrigger asChild>
+                  <button
+                    key={index}
+                    onClick={() => onUserClick(link.name)} // Tambahkan event handler di sini
+                    className={cn(
+                      buttonVariants({ variant: link.variant, size: "xl" }),
+                      link.variant === "grey" &&
+                        "dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white shrink",
+                      "justify-start gap-4"
+                    )}
+                  >
+                    <Avatar className="flex justify-center items-center">
+                      <Bot />
+                    </Avatar>
+                    <div className="flex flex-col max-w-56">
+                      {link.messages.length > 0 && (
+                        <><span className="text-zinc-300 text-xs truncate ">
+                            {link.messages[link.messages.length - 1].message}
+                          </span><p>haloo</p></>
+                      )}
+                    </div>
+                  </button>
+                </TooltipTrigger>
+              </Tooltip>
+            </TooltipProvider>
           )
-        )}
+        // )}
+      )}
       </nav>
     </div>
   );

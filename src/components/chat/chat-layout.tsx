@@ -49,7 +49,6 @@ export function ChatLayout({
     const handleScroll = () => {
       if (chatContainerRef.current) {
         const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-        console.log("scrollTop:", scrollTop, "scrollHeight:", scrollHeight, "clientHeight:", clientHeight);
         const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10; // Allow some margin
         setShowScrollToBottom(!isAtBottom);
       }
@@ -73,6 +72,13 @@ export function ChatLayout({
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  };
+
+  const handleUserClick = (username: string) => {
+    const user = userData.find((u) => u.name === username);
+    if (user) {
+      setSelectedUser(user);
     }
   };
 
@@ -108,15 +114,18 @@ export function ChatLayout({
           isCollapsed && "min-w-[50px] md:min-w-[70px] transition-all duration-300 ease-in-out"
         )}
       >
-        <Sidebar
-          isCollapsed={isCollapsed || isMobile}
-          links={userData.map((user) => ({
-            name: user.name,
-            messages: user.messages ?? [],
-            variant: selectedUser.name === user.name ? "grey" : "ghost",
-          }))}
-          isMobile={isMobile}
-        />
+        {!isMobile && (
+          <Sidebar
+            isCollapsed={isCollapsed}
+            links={userData.map((user) => ({
+              name: user.name,
+              messages: user.messages ?? [],
+              variant: selectedUser.name === user.name ? "grey" : "ghost",
+            }))}
+            isMobile={isMobile}
+            onUserClick={handleUserClick}
+          />
+        )}
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
@@ -124,7 +133,7 @@ export function ChatLayout({
           <div ref={chatContainerRef} className="h-full overflow-y-auto">
             <Chat
               messages={selectedUser.messages}
-              selectedUser={selectedUser}
+              selectedUser={{ id: selectedUser.id, avatar: selectedUser.avatar, name: selectedUser.name }}
               isMobile={isMobile}
             />
           </div>
